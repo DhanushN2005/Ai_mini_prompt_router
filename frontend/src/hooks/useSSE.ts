@@ -69,12 +69,32 @@ export function useSSE(botId: string) {
       const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8081';
       const token = localStorage.getItem('token');
 
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+
+      const openaiKey = localStorage.getItem('openai_api_key');
+      const anthropicKey = localStorage.getItem('anthropic_api_key');
+      const geminiKey = localStorage.getItem('gemini_api_key');
+      const groqKey = localStorage.getItem('groq_api_key');
+      const deepseekKey = localStorage.getItem('deepseek_api_key');
+      const mistralKey = localStorage.getItem('mistral_api_key');
+      const xaiKey = localStorage.getItem('xai_api_key');
+      const metaKey = localStorage.getItem('meta_api_key');
+
+      if (openaiKey) headers['X-OpenAI-API-Key'] = openaiKey;
+      if (anthropicKey) headers['X-Anthropic-API-Key'] = anthropicKey;
+      if (geminiKey) headers['X-Gemini-API-Key'] = geminiKey;
+      if (groqKey) headers['X-Groq-API-Key'] = groqKey;
+      if (deepseekKey) headers['X-DeepSeek-API-Key'] = deepseekKey;
+      if (mistralKey) headers['X-Mistral-API-Key'] = mistralKey;
+      if (xaiKey) headers['X-xAI-API-Key'] = xaiKey;
+      if (metaKey) headers['X-Meta-API-Key'] = metaKey;
+
       const response = await fetch(`${baseUrl}/api/chat`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers,
         body: JSON.stringify({
           bot_id: botId,
           prompt: userPrompt,
