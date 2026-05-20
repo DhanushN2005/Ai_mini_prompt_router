@@ -89,8 +89,33 @@ type openAIResponse struct {
 }
 
 func (p *openAIProvider) GenerateCompletion(ctx context.Context, model string, systemPrompt string, userPrompt string, opts *GeneratorOptions) (*ChatResponse, error) {
-	if p.apiKey == "" || p.apiKey == "your_openai_api_key_here" || p.apiKey == "your_groq_api_key_here" {
-		return nil, fmt.Errorf("%s API key is missing or not configured. Update your .env file", p.provider)
+	apiKey := p.apiKey
+	if p.provider == "DeepSeek" {
+		if dsKey, ok := ctx.Value("X-DeepSeek-API-Key").(string); ok && dsKey != "" {
+			apiKey = dsKey
+		}
+	} else if p.provider == "Mistral" {
+		if misKey, ok := ctx.Value("X-Mistral-API-Key").(string); ok && misKey != "" {
+			apiKey = misKey
+		}
+	} else if p.provider == "xAI" {
+		if xKey, ok := ctx.Value("X-xAI-API-Key").(string); ok && xKey != "" {
+			apiKey = xKey
+		}
+	} else if p.provider == ProviderGroq {
+		if metaKey, ok := ctx.Value("X-Meta-API-Key").(string); ok && metaKey != "" {
+			apiKey = metaKey
+		} else if groqCtxKey, ok := ctx.Value("X-Groq-API-Key").(string); ok && groqCtxKey != "" {
+			apiKey = groqCtxKey
+		}
+	} else {
+		if ctxKey, ok := ctx.Value("X-OpenAI-API-Key").(string); ok && ctxKey != "" {
+			apiKey = ctxKey
+		}
+	}
+
+	if apiKey == "" || apiKey == "your_openai_api_key_here" || apiKey == "your_groq_api_key_here" {
+		return nil, fmt.Errorf("%s API key is missing or not configured. Update your .env file or settings", p.provider)
 	}
 
 	messages := []openAIMessage{
@@ -131,7 +156,7 @@ func (p *openAIProvider) GenerateCompletion(ctx context.Context, model string, s
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+p.apiKey)
+	req.Header.Set("Authorization", "Bearer "+apiKey)
 
 	resp, err := p.client.Do(req)
 	if err != nil {
@@ -164,8 +189,33 @@ func (p *openAIProvider) GenerateCompletion(ctx context.Context, model string, s
 }
 
 func (p *openAIProvider) GenerateCompletionStream(ctx context.Context, model string, systemPrompt string, userPrompt string, chunkChan chan<- string, opts *GeneratorOptions) (*ChatResponse, error) {
-	if p.apiKey == "" || p.apiKey == "your_openai_api_key_here" || p.apiKey == "your_groq_api_key_here" {
-		return nil, fmt.Errorf("%s API key is missing or not configured. Update your .env file", p.provider)
+	apiKey := p.apiKey
+	if p.provider == "DeepSeek" {
+		if dsKey, ok := ctx.Value("X-DeepSeek-API-Key").(string); ok && dsKey != "" {
+			apiKey = dsKey
+		}
+	} else if p.provider == "Mistral" {
+		if misKey, ok := ctx.Value("X-Mistral-API-Key").(string); ok && misKey != "" {
+			apiKey = misKey
+		}
+	} else if p.provider == "xAI" {
+		if xKey, ok := ctx.Value("X-xAI-API-Key").(string); ok && xKey != "" {
+			apiKey = xKey
+		}
+	} else if p.provider == ProviderGroq {
+		if metaKey, ok := ctx.Value("X-Meta-API-Key").(string); ok && metaKey != "" {
+			apiKey = metaKey
+		} else if groqCtxKey, ok := ctx.Value("X-Groq-API-Key").(string); ok && groqCtxKey != "" {
+			apiKey = groqCtxKey
+		}
+	} else {
+		if ctxKey, ok := ctx.Value("X-OpenAI-API-Key").(string); ok && ctxKey != "" {
+			apiKey = ctxKey
+		}
+	}
+
+	if apiKey == "" || apiKey == "your_openai_api_key_here" || apiKey == "your_groq_api_key_here" {
+		return nil, fmt.Errorf("%s API key is missing or not configured. Update your .env file or settings", p.provider)
 	}
 
 	messages := []openAIMessage{
@@ -207,7 +257,7 @@ func (p *openAIProvider) GenerateCompletionStream(ctx context.Context, model str
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+p.apiKey)
+	req.Header.Set("Authorization", "Bearer "+apiKey)
 
 	resp, err := p.client.Do(req)
 	if err != nil {

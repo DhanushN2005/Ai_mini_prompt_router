@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -50,8 +51,18 @@ func (ctrl *ChatController) SendPrompt(c echo.Context) error {
 	}
 	resultChan := make(chan streamResult, 1)
 
+	ctx := c.Request().Context()
+	ctx = context.WithValue(ctx, "X-OpenAI-API-Key", c.Request().Header.Get("X-OpenAI-API-Key"))
+	ctx = context.WithValue(ctx, "X-Anthropic-API-Key", c.Request().Header.Get("X-Anthropic-API-Key"))
+	ctx = context.WithValue(ctx, "X-Gemini-API-Key", c.Request().Header.Get("X-Gemini-API-Key"))
+	ctx = context.WithValue(ctx, "X-Groq-API-Key", c.Request().Header.Get("X-Groq-API-Key"))
+	ctx = context.WithValue(ctx, "X-DeepSeek-API-Key", c.Request().Header.Get("X-DeepSeek-API-Key"))
+	ctx = context.WithValue(ctx, "X-Mistral-API-Key", c.Request().Header.Get("X-Mistral-API-Key"))
+	ctx = context.WithValue(ctx, "X-xAI-API-Key", c.Request().Header.Get("X-xAI-API-Key"))
+	ctx = context.WithValue(ctx, "X-Meta-API-Key", c.Request().Header.Get("X-Meta-API-Key"))
+
 	go func() {
-		resp, err := ctrl.chatService.ProcessChatStream(c.Request().Context(), userID, req, chunkChan)
+		resp, err := ctrl.chatService.ProcessChatStream(ctx, userID, req, chunkChan)
 		close(chunkChan)
 		resultChan <- streamResult{resp: resp, err: err}
 	}()

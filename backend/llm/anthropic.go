@@ -61,8 +61,12 @@ type anthropicResponse struct {
 }
 
 func (p *anthropicProvider) GenerateCompletion(ctx context.Context, model string, systemPrompt string, userPrompt string, opts *GeneratorOptions) (*ChatResponse, error) {
-	if p.apiKey == "" || p.apiKey == "your_anthropic_api_key_here" {
-		return nil, errors.New("Anthropic API key is missing or not configured. Update your .env file")
+	apiKey := p.apiKey
+	if ctxKey, ok := ctx.Value("X-Anthropic-API-Key").(string); ok && ctxKey != "" {
+		apiKey = ctxKey
+	}
+	if apiKey == "" || apiKey == "your_anthropic_api_key_here" {
+		return nil, errors.New("Anthropic API key is missing or not configured. Update your .env file or settings")
 	}
 
 	messages := []anthropicMessage{
@@ -99,7 +103,7 @@ func (p *anthropicProvider) GenerateCompletion(ctx context.Context, model string
 	}
 
 	req.Header.Set("content-type", "application/json")
-	req.Header.Set("x-api-key", p.apiKey)
+	req.Header.Set("x-api-key", apiKey)
 	req.Header.Set("anthropic-version", "2023-06-01")
 
 	resp, err := p.client.Do(req)

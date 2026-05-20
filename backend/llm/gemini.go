@@ -73,8 +73,12 @@ type geminiResponse struct {
 }
 
 func (p *geminiProvider) GenerateCompletion(ctx context.Context, model string, systemPrompt string, userPrompt string, opts *GeneratorOptions) (*ChatResponse, error) {
-	if p.apiKey == "" || p.apiKey == "your_gemini_api_key_here" {
-		return nil, errors.New("Gemini API key is missing or not configured. Update your .env file")
+	apiKey := p.apiKey
+	if ctxKey, ok := ctx.Value("X-Gemini-API-Key").(string); ok && ctxKey != "" {
+		apiKey = ctxKey
+	}
+	if apiKey == "" || apiKey == "your_gemini_api_key_here" {
+		return nil, errors.New("Gemini API key is missing or not configured. Update your .env file or settings")
 	}
 
 	var systemInstruction *geminiSystemInstruction
@@ -127,7 +131,7 @@ func (p *geminiProvider) GenerateCompletion(ctx context.Context, model string, s
 		return nil, fmt.Errorf("failed to marshal gemini request: %w", err)
 	}
 
-	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", model, p.apiKey)
+	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", model, apiKey)
 	
 	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(jsonBytes))
 	if err != nil {
